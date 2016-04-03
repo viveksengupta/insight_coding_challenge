@@ -112,12 +112,45 @@ public class AverageDegree {
 
                         System.out.println(currTweetInScope);
 
-                        // get the hashtags
-                        JSONArray arr = obj.getJSONObject("entities").getJSONArray("hashtags");
-                        for (int i = 0; i < arr.length(); i++)
-                        {
-                            String hashtag = arr.getJSONObject(i).getString("text");
-                            System.out.print(hashtag + "\t");
+                        // if current tweet is not in scope, output the last calculated average degree
+                        if(!currTweetInScope) {
+                            // @uncomment write()
+                            //bufferedWriter.write(Double.toString(avgDegree));
+                            System.out.println(Double.toString(avgDegree));
+                        }
+
+                        // if current tweet is in scope, we have to calculate the new average degree
+                        else {
+                            // @delete out of scope tweets
+                            System.out.println("delete out of scope tweets");
+
+                            // while loop to find min Date from heap
+                            // if min is out of scope, delete/extract min Date
+                            // @update HashMaps, numVertices, totalDegree, avgDegree
+
+                            // @add the new tweet
+                            System.out.println("add the new tweet");
+
+                            // get the hashtags as an array
+                            JSONArray hashtagArray = obj.getJSONObject("entities").getJSONArray("hashtags");
+                            int hashtagArrayLength = hashtagArray.length();
+
+                            // if the tweet has no hashtags or only 1 hashtag, this won't modify the graph
+                            if(hashtagArrayLength == 0 || hashtagArrayLength == 1) {
+                                // @uncomment write()
+                                //bufferedWriter.write(Double.toString(avgDegree));
+                                System.out.println(Double.toString(avgDegree));
+                            }
+
+                            else {
+                                // @create ArrayList of edge Strings
+                                for (int i = 0; i < hashtagArrayLength; i++) {
+                                    String hashtag = hashtagArray.getJSONObject(i).getString("text");
+                                    System.out.print(hashtag + "\t");
+                                }
+
+                                // @update HashMaps, numVertices, totalDegree, avgDegree
+                            }
                         }
 
                         System.out.println();
@@ -126,10 +159,6 @@ public class AverageDegree {
                     } catch(JSONException jsone) {
                         jsone.printStackTrace();
                     }
-
-
-                    // read next line and continue in the while loop
-                    //line = bufferedReader.readLine();
                 }
 
             // @catch(ioe)
