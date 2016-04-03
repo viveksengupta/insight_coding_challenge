@@ -16,11 +16,20 @@ import java.util.HashMap;
 
 public class AverageDegree {
     public static void main(String[] args) {
-        // variables that are maintained and updated for every tweet processed
-        long numVertices = 0;
-        long totalDegree = 0;
+        /* ========== variables updated for every tweet processed ========== */
+
+        // total number of vertices in the current hashtag graph
+        int numVertices = 0;
+
+        // total degree of all vertices in the current hashtag graph
+        int totalDegree = 0;
+
+        // current average degree in the hashtag graph (totalDegree / numVertices)
         double avgDegree = 0.0;
+
+        // the maximum timestamp of the latest tweet processed so far
         Date maxDate = null;
+
         // Does the current tweet have a timestamp within 60 seconds of max or greater than max
         boolean currTweetInScope = false;
 
@@ -78,14 +87,20 @@ public class AverageDegree {
 
                 // line has JSON data for one tweet as a String
                 while ((line = bufferedReader.readLine()) != null) {
-                    // ignore rate limiting messages
-                    if(line.substring(0).equals("{\"limit\":")) {
-                        continue;
-                    }
+
                     // try to get a handle on the JSONObject, catch JSONException @catch(jsone)
                     try {
                         JSONObject obj = new JSONObject(line);
                         System.out.println("another line");
+
+                        // this json does not have either created_at or entities
+                        // it is probably a rate limiting message so it's ignored - line.startsWith("{\"limit\":")
+                        // it may also be something else that can be safely ignored
+                        if(!obj.has("created_at") || !obj.has("entities")) {
+                            continue;
+                        }
+
+                        // if it was not a rate limiting message, we process the line
                         // get the timestamp
                         String timestamp = obj.getString("created_at");
                         System.out.print(timestamp + "\t");
@@ -93,22 +108,11 @@ public class AverageDegree {
                         // Get Java Date object from Timestamp String
                         Date currDate = getTwitterDate(timestamp);
 
-                        // if this is the 1st valid tweet (might have seen rate limit messages before)
-                        // or this tweet has a timestamp later than the current max
-                        if(maxDate == null || currDate.compareTo(maxDate) > 0) {
-                            maxDate = currDate;
-                            currTweetInScope = true;
-                        }
-
-                        // if this tweet has a timestamp less than or equal to the current max
-                        else if((maxDate.getTime() - currDate.getTime()) / 1000 < 60) {
-                                currTweetInScope = true;
-                        }
-
-                        // if this tweet has a timestamp more than 60 seconds less than the current max
-                        else {
-                            currTweetInScope = false;
-                        }
+                        // Update values of maxDate and currTweetInScope
+                        // tweetScope is returned as boolean
+                        // maxDate is passed as reference and updated in the function
+                        maxDate = updateMaxDate(currDate, maxDate);
+                        currTweetInScope = updateTweetScope(currDate, maxDate);
 
                         System.out.println(currTweetInScope);
 
@@ -178,7 +182,7 @@ public class AverageDegree {
     public static Date getTwitterDate(String timestamp) {
         Date date = null;
         try {
-            final String TWITTER = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
+            final String TWITTER = "EEE MMM dd HH:mm:ss zzzzz yyyy";
             SimpleDateFormat sdf = new SimpleDateFormat(TWITTER);
             sdf.setLenient(true);
             date = sdf.parse(timestamp);
@@ -186,5 +190,30 @@ public class AverageDegree {
             pe.printStackTrace();
         }
         return date;
+    }
+
+    public static Date updateMaxDate(Date currDate, Date maxDate) {
+        // if this is the 1st valid tweet (might have seen rate limit messages before)
+        // or this tweet has a timestamp later than the current max
+        if(maxDate == null || currDate.compareTo(maxDate) > 0) {
+            return currDate;
+        }
+
+        // if this tweet has a timestamp equal to or less than the current max
+        else {
+            return maxDate;
+        }
+    }
+
+    public static boolean updateTweetScope(Date currDate, Date maxDate) {
+        // if this tweet has a timestamp later than or within the last 60 seconds of the current max
+        if(currDate.compareTo(maxDate) > 0 || ((maxDate.getTime() - currDate.getTime()) / 1000 <= 60)) {
+            return true;
+        }
+
+        // if this tweet has a timestamp more than 60 seconds before the current max
+        else {
+            return false;
+        }
     }
 }
