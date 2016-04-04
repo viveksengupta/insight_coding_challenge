@@ -329,7 +329,7 @@ public class AverageDegree {
             avgDegree = 0.0;
         }
         else {
-            avgDegree = numVertices / totalDegree;
+            avgDegree = (double) totalDegree / numVertices;
         }
     }
 
@@ -348,15 +348,16 @@ public class AverageDegree {
                 dateHeap.pop();
 
                 // get the ArrayList of Strings from dateEdgeMap
-                ArrayList<String> al2 = dateEdgeMap.get(minDate);
+                ArrayList<String> al = dateEdgeMap.get(minDate);
 
                 // tweets at timestamp minDate didn't add any edges, hence the ArrayList is empty
-                if(al2 == null) {
+                if(al == null) {
                     return;
                 }
 
-                for(int i=0; i<al2.size(); i++) {
-                    String edgeString = al2.get(i);
+                for(String edgeString : al) {
+                //for(int i=0; i<al2.size(); i++) {
+                    //String edgeString = al2.get(i);
 
                     // if there are more than 1 contribution towards this edge,
                     // i.e., if some other tweet(s) is/are contributing towards this edge as well
@@ -420,7 +421,7 @@ public class AverageDegree {
                 avgDegree = 0.0;
             }
             else {
-                avgDegree = numVertices / totalDegree;
+                avgDegree = (double)totalDegree / numVertices;
             }
         }
     }
