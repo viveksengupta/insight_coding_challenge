@@ -15,72 +15,72 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class AverageDegree {
+    /* ========== member variables ========== */
+
+    // 1. total number of vertices in the current hashtag graph
+    int numVertices = 0;
+
+    // 2. total degree of all vertices in the current hashtag graph
+    int totalDegree = 0;
+
+    // 3. current average degree in the hashtag graph (totalDegree / numVertices)
+    double avgDegree = 0.0;
+
+    // 4. the maximum timestamp of the latest tweet processed so far
+    Date maxDate = null;
+
+    /* 5. which action to do? add the tweet? delete other tweets? do nothing?
+     * this can take 3 values to indicate what to do with the current tweet
+     * -1: the tweet is out of scope, it has a timestamp of more than 60 seconds before the current max
+     * 0: the tweet is out of order but in scope, it is within the last 60 seconds of the current max
+     * in this case, we will add this tweet, but won't delete anything as the max doesn't change
+     * 1: the tweet is in order and has a timestamp greater than the current max
+     * in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
+     */
+    int action = -1;
+
+
+    /* ========== data structures ========== */
+
+    /* ---------- 1. BinaryHeap ----------
+     * min heap of tweet timestamps
+     * only insertions and deletions/extractions are needed
+     * using BinaryHeap implementation from org.apache.commons.collections
+     */
+    BinaryHeap dateHeap = new BinaryHeap();
+
+    /* ---------- 2. HashMap<Date, ArrayList<String>> ----------
+     * Hashtable with tweet dates as keys and list of edge Strings formed by the hashtags as values
+     * example tweet: Date=>date123, Hashtags=> #a, #b, #c
+     * HashMap entry: < date123: < "a-b", "a-c", "b-c" > >
+     * using standard Java HashMap implementation
+     */
+    HashMap<Date, ArrayList<String>> dateEdgeMap = new HashMap<>();
+
+    /* ---------- 3. HashMap<String, Integer> ----------
+     * Hashtable with edge Strings as keys and how many tweets contributed those edges as values
+     * example tweets: tweet1=> #a, #b, #c;   tweet2=> #a, #c
+     * respective edges: tweet1=> a-b, a-c, b-c;   tweet2=> a-c
+     * HashMap entries: <"a-b": 1>, <"a-c": 2>, <"b-c": 1>
+     * "a-c" has value 2 because 2 tweets contributed to that edge
+     * we maintain contributions only from tweets in the 60 second window
+     * using standard Java HashMap implementation
+     */
+    HashMap<String, Integer> edgeContributionMap = new HashMap<>();
+
+    /* ---------- 4. HashMap<String, Integer> ----------
+     * Hashtable with vertices(hashtags) as keys and degrees as values
+     * example tweets: tweet1=> #a, #b, #c;   tweet2=> #a, #d
+     * HashMap entries: <"a": 3>, <"b": 2>, <"c": 2>, <"d": 1>
+     * "a" has 3 edges to "b", "c" and "d";   "d" has only 1 edge to "a"
+     * this HashMap lets us determine when a vertex is not connected to anyone else
+     */
+    HashMap<String, Integer> vertexDegreeMap = new HashMap<>();
+
+
     public static void main(String[] args) {
-        /* ========== variables updated for every tweet processed ========== */
+        AverageDegree avgDeg = new AverageDegree();
 
-        // total number of vertices in the current hashtag graph
-        int numVertices = 0;
-
-        // total degree of all vertices in the current hashtag graph
-        int totalDegree = 0;
-
-        // current average degree in the hashtag graph (totalDegree / numVertices)
-        double avgDegree = 0.0;
-
-        // the maximum timestamp of the latest tweet processed so far
-        Date maxDate = null;
-
-        // Does the current tweet have a timestamp within 60 seconds of max or greater than max
-        //boolean currTweetInScope = false;
-
-        // variable to track which action to do, add the tweet? delete other tweets? do nothing?
-        // this can take 3 values to indicate what to do with the current tweet
-        // -1: the tweet is out of scope, it has a timestamp of more than 60 seconds before the current max
-        // 0: the tweet is out of order but in scope, it is within the last 60 seconds of the current max
-        // in this case, we will add this tweet, but won't delete anything as the max doesn't change
-        // 1: the tweet is in order and has a timestamp greater than the current max
-        // in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
-        int action = -1;
-
-        /* ========== data structures ========== */
-
-        /* ---------- 1. BinaryHeap ----------
-        /* min heap of tweet timestamps
-        /* only insertions and deletions/extractions are needed
-        /* using BinaryHeap implementation from org.apache.commons.collections
-         */
-        BinaryHeap dateHeap = new BinaryHeap();
-
-        /* ---------- 2. HashMap<Date, ArrayList<String>> ----------
-        /* Hashtable with tweet dates as keys and list of edge Strings formed by the hashtags as values
-        /* example tweet: Date=>date123, Hashtags=> #a, #b, #c
-        /* HashMap entry: < date123: < "a-b", "a-c", "b-c" > >
-        /* using standard Java HashMap implementation
-         */
-        HashMap<Date, ArrayList<String>> dateEdgeMap = new HashMap<>();
-
-        /* ---------- 3. HashMap<String, Integer> ----------
-        /* Hashtable with edge Strings as keys and how many tweets contributed those edges as values
-        /* example tweets: tweet1=> #a, #b, #c;   tweet2=> #a, #c
-        /* respective edges: tweet1=> a-b, a-c, b-c;   tweet2=> a-c
-        /* HashMap entries: <"a-b": 1>, <"a-c": 2>, <"b-c": 1>
-        /* "a-c" has value 2 because 2 tweets contributed to that edge
-        /* we maintain contributions only from tweets in the 60 second window
-        /* using standard Java HashMap implementation
-         */
-        HashMap<String, Integer> edgeContributionMap = new HashMap<>();
-
-        /* ---------- 4. HashMap<String, Integer> ----------
-        /* Hashtable with vertices(hashtags) as keys and degrees as values
-        /* example tweets: tweet1=> #a, #b, #c;   tweet2=> #a, #d
-        /* HashMap entries: <"a": 3>, <"b": 2>, <"c": 2>, <"d": 1>
-        /* "a" has 3 edges to "b", "c" and "d";   "d" has only 1 edge to "a"
-        /* this HashMap lets us determine when a vertex is not connected to anyone else
-         */
-        HashMap<String, Integer> vertexDegreeMap = new HashMap<>();
-
-
-    
         // try obtaining a FileReader for tweets.txt, catch FileNotFoundException @catch(fnfe)
         try {
             //Reader reader = new FileReader("tweet_input/tweets.txt");
@@ -116,43 +116,39 @@ public class AverageDegree {
                         System.out.print(timestamp + "\t");
 
                         // get Java Date object from Timestamp String
-                        Date currDate = getTwitterDate(timestamp);
-
-                        // update values of maxDate and currTweetInScope using currDate and maxDate
-                        //maxDate = updateMaxDate(currDate, maxDate);
-                        //currTweetInScope = updateTweetScope(currDate, maxDate);
+                        Date currDate = avgDeg.getTwitterDate(timestamp);
 
                         // update value of action using currDate and maxDate
-                        action = updateAction(currDate, maxDate);
+                        avgDeg.action = avgDeg.updateAction(currDate, avgDeg.maxDate);
 
                         //System.out.println(currTweetInScope);
 
                         // if current tweet is not in scope, output the last calculated average degree
-                        if(action == -1) {
+                        if(avgDeg.action == -1) {
                             // @uncomment write()
                             //bufferedWriter.write(Double.toString(avgDegree));
-                            System.out.println(Double.toString(avgDegree));
+                            System.out.println(Double.toString(avgDeg.avgDegree));
                         }
 
                         // 0: if current tweet is in scope but maxDate does not change, just add this tweet
                         // 1: if current tweet is in scope and changes maxDate, delete necessary tweets and add this tweet
                         else {
                             // deletion is only performed if (action == 1) and not if (action == 0)
-                            if(action == 1) {
+                            if(avgDeg.action == 1) {
                                 /* @delete out of scope tweets */
                                 System.out.println("delete out of scope tweets ...");
 
                                 // find min Date from dateHeap
-                                Date minDate = (Date) dateHeap.peek();
+                                Date minDate = (Date) avgDeg.dateHeap.peek();
                                 // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
-                                while(minDate != null && ((maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
+                                while(minDate != null && ((avgDeg.maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
                                     // delete tweet with minDate
-                                    dateHeap.pop();
+                                    avgDeg.dateHeap.pop();
                                 /* @update HashMaps, numVertices, totalDegree, avgDegree */
 
 
                                 }
-                                System.out.println("avg degree after deletion(not final): " + Double.toString(avgDegree));
+                                System.out.println("avg degree after deletion(not final): " + Double.toString(avgDeg.avgDegree));
                             }
 
                             // addition is performed both when (action == 1) and (action == 0)
@@ -167,7 +163,7 @@ public class AverageDegree {
                             if(hashtagArrayLength == 0 || hashtagArrayLength == 1) {
                                 // @uncomment write()
                                 //bufferedWriter.write(Double.toString(avgDegree));
-                                System.out.println("avg degree after addition(final): " + Double.toString(avgDegree));
+                                System.out.println("avg degree after addition(final): " + Double.toString(avgDeg.avgDegree));
                             }
 
                             // if the tweet has at least 2 hashtags
@@ -210,7 +206,7 @@ public class AverageDegree {
     }
 
     // Parse tweet timestamp, return Java Date
-    public static Date getTwitterDate(String timestamp) {
+    public Date getTwitterDate(String timestamp) {
         Date date = null;
         try {
             final String TWITTER = "EEE MMM dd HH:mm:ss zzzzz yyyy";
@@ -223,7 +219,8 @@ public class AverageDegree {
         return date;
     }
 
-    public static int updateAction(Date currDate, Date maxDate) {
+    // set action to -1, 0 or 1 depending on currDate and maxDate
+    public int updateAction(Date currDate, Date maxDate) {
         int act;
 
         // if this is the 1st valid tweet (might have seen rate limit messages before)
@@ -243,35 +240,35 @@ public class AverageDegree {
         return act;
     }
 
-    public static void dateHeapAdd() {
+    public void dateHeapAdd() {
 
     }
 
-    public static void dateHeapRemove() {
+    public void dateHeapRemove() {
 
     }
 
-    public static void edgeContributionMapAdd() {
+    public void edgeContributionMapAdd() {
 
     }
 
-    public static void edgeContributionMapRemove() {
+    public void edgeContributionMapRemove() {
 
     }
 
-    public static void dateEdgeMapAdd() {
+    public void dateEdgeMapAdd() {
 
     }
 
-    public static void dateEdgeMapRemove() {
+    public void dateEdgeMapRemove() {
 
     }
 
-    public static void vertexDegreeMapAdd() {
+    public void vertexDegreeMapAdd() {
 
     }
 
-    public static void vertexDegreeMapRemove() {
+    public void vertexDegreeMapRemove() {
 
     }
 }
