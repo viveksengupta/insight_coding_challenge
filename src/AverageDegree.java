@@ -18,16 +18,19 @@ public class AverageDegree {
     /* ========== member variables ========== */
 
     // 1. total number of vertices in the current hashtag graph
-    int numVertices = 0;
+    int numVertices;
 
     // 2. total degree of all vertices in the current hashtag graph
-    int totalDegree = 0;
+    int totalDegree;
 
     // 3. current average degree in the hashtag graph (totalDegree / numVertices)
-    double avgDegree = 0.0;
+    double avgDegree;
 
     // 4. the maximum timestamp of the latest tweet processed so far
-    Date maxDate = null;
+    Date maxDate;
+
+    // 5. the timestamp of the current tweet being processed
+    Date currDate;
 
     /* 5. which action to do? add the tweet? delete other tweets? do nothing?
      * this can take 3 values to indicate what to do with the current tweet
@@ -37,7 +40,7 @@ public class AverageDegree {
      * 1: the tweet is in order and has a timestamp greater than the current max
      * in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
      */
-    int action = -1;
+    int action;
 
 
     /* ========== data structures ========== */
@@ -78,6 +81,16 @@ public class AverageDegree {
     HashMap<String, Integer> vertexDegreeMap = new HashMap<>();
 
 
+    public AverageDegree() {
+        numVertices = 0;
+        totalDegree = 0;
+        avgDegree = 0.0;
+        maxDate = null;
+        currDate = null;
+        action = -1;
+    }
+
+
     public static void main(String[] args) {
         AverageDegree avgDeg = new AverageDegree();
 
@@ -116,10 +129,10 @@ public class AverageDegree {
                         System.out.print(timestamp + "\t");
 
                         // get Java Date object from Timestamp String
-                        Date currDate = avgDeg.getTwitterDate(timestamp);
+                        avgDeg.setCurrDateFromTweetTimestamp(timestamp);
 
                         // update value of action using currDate and maxDate
-                        avgDeg.action = avgDeg.updateAction(currDate, avgDeg.maxDate);
+                        avgDeg.updateAction();
 
                         //System.out.println(currTweetInScope);
 
@@ -157,7 +170,7 @@ public class AverageDegree {
                             // if the tweet has no hashtags or only 1 hashtag, this won't modify the graph
                             // if the tweet has at least 2 hashtags
                             if(hashtagJsonArrayLength > 1) {
-                                avgDeg.addToDataStructures(currDate, hashtagJsonArray, hashtagJsonArrayLength);
+                                avgDeg.addToDataStructures(hashtagJsonArray, hashtagJsonArrayLength);
                             }
 
                             // @uncomment write()
@@ -187,7 +200,7 @@ public class AverageDegree {
     }
 
     // Parse tweet timestamp, return Java Date
-    public Date getTwitterDate(String timestamp) {
+    public Date setCurrDateFromTweetTimestamp(String timestamp) {
         Date date = null;
         try {
             final String TWITTER = "EEE MMM dd HH:mm:ss zzzzz yyyy";
@@ -201,27 +214,24 @@ public class AverageDegree {
     }
 
     // set action to -1, 0 or 1 depending on currDate and maxDate
-    public int updateAction(Date currDate, Date maxDate) {
-        int act;
+    public void updateAction() {
 
         // if this is the 1st valid tweet (might have seen rate limit messages before)
         // or this tweet has a timestamp later than the current max
         if(maxDate == null || currDate.compareTo(maxDate) > 0) {
-            act = 1;
+            action = 1;
         }
         // if this tweet has a timestamp within 60 seconds before the current max
         else if((maxDate.getTime() - currDate.getTime()) / 1000 <= 60) {
-            act = 0;
+            action = 0;
         }
         // if this tweet has a timestamp more than 60 seconds before than the current max
         else {
-            act = -1;
+            action = -1;
         }
-
-        return act;
     }
 
-    public void addToDataStructures(Date currDate, JSONArray jsonArr, int jsonArrLen) throws JSONException {
+    public void addToDataStructures(JSONArray jsonArr, int jsonArrLen) throws JSONException {
 
         /* ===== 1. add Date to dateHeap ===== */
         dateHeap.insert(currDate);
