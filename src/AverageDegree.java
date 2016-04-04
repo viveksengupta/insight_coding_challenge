@@ -135,53 +135,34 @@ public class AverageDegree {
                         else {
                             // deletion is only performed if (action == 1) and not if (action == 0)
                             if(avgDeg.action == 1) {
-                                /* @delete out of scope tweets */
+
+                                /* ========== @delete out of scope tweets ========== */
                                 System.out.println("delete out of scope tweets ...");
+                                avgDeg.removeFromDataStructures();
 
-                                // find min Date from dateHeap
-                                Date minDate = (Date) avgDeg.dateHeap.peek();
-                                // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
-                                while(minDate != null && ((avgDeg.maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
-                                    // delete tweet with minDate
-                                    avgDeg.dateHeap.pop();
-                                /* @update HashMaps, numVertices, totalDegree, avgDegree */
-
-
-                                }
+                                // @uncomment write()
+                                //bufferedWriter.write(Double.toString(avgDegree));
                                 System.out.println("avg degree after deletion(not final): " + Double.toString(avgDeg.avgDegree));
                             }
 
                             // addition is performed both when (action == 1) and (action == 0)
-                            /* @add the new tweet */
+
+                            /* ========== @add the new tweet ========== */
+                            // get the hashtags as an array
+                            JSONArray hashtagJsonArray = obj.getJSONObject("entities").getJSONArray("hashtags");
+                            int hashtagJsonArrayLength = hashtagJsonArray.length();
+
                             System.out.println("add the new tweet ...");
 
-                            // get the hashtags as an array
-                            JSONArray hashtagArray = obj.getJSONObject("entities").getJSONArray("hashtags");
-                            int hashtagArrayLength = hashtagArray.length();
-
                             // if the tweet has no hashtags or only 1 hashtag, this won't modify the graph
-                            if(hashtagArrayLength == 0 || hashtagArrayLength == 1) {
-                                // @uncomment write()
-                                //bufferedWriter.write(Double.toString(avgDegree));
-                                System.out.println("avg degree after addition(final): " + Double.toString(avgDeg.avgDegree));
-                            }
-
                             // if the tweet has at least 2 hashtags
-                            else {
-                                // 1. add Date to dateHeap
-                                // 2. add hashtags to vertexDegreeMap
-                                // 3. add edgeStrings to dateEdgeMap
-                                // 4. add contribution to edgeContributionMap
-
-                                // @create ArrayList of edge Strings
-                                ArrayList<String> edgeString = new ArrayList<>();
-                                for (int i = 0; i < hashtagArrayLength; i++) {
-                                    String hashtag = hashtagArray.getJSONObject(i).getString("text");
-                                    System.out.print(hashtag + "\t");
-                                }
-
-                                // @update HashMaps, numVertices, totalDegree, avgDegree
+                            if(hashtagJsonArrayLength > 1) {
+                                avgDeg.addToDataStructures(currDate, hashtagJsonArray, hashtagJsonArrayLength);
                             }
+
+                            // @uncomment write()
+                            //bufferedWriter.write(Double.toString(avgDegree));
+                            System.out.println("avg degree after addition(final): " + Double.toString(avgDeg.avgDegree));
                         }
 
                         System.out.println();
@@ -240,35 +221,63 @@ public class AverageDegree {
         return act;
     }
 
-    public void dateHeapAdd() {
+    public void addToDataStructures(Date currDate, JSONArray jsonArr, int jsonArrLen) throws JSONException {
 
+        /* ===== 1. add Date to dateHeap ===== */
+        dateHeap.insert(currDate);
+
+        // @create ArrayList of edge Strings
+        ArrayList<String> al;
+
+        // if Date is already in dateEdgeMap, point al to the associated ArrayList<>
+        if(dateEdgeMap.containsKey(currDate)) {
+            al = dateEdgeMap.get(currDate);
+        }
+        // if Date is not in dataEdgeMap, initialize al to an empty ArrayList<>
+        else {
+            al = new ArrayList<>();
+        }
+
+        for (int i = 0; i < jsonArrLen; i++) {
+            String s1 = jsonArr.getJSONObject(i).getString("text");
+
+            for (int j = i + 1; j < jsonArrLen; j++) {
+                String s2 = jsonArr.getJSONObject(i).getString("text");
+
+                StringBuilder sb = new StringBuilder();
+                if (s1.compareTo(s2) < 0) {
+                    sb.append(s1).append("-").append(s2);
+                } else {
+                    sb.append(s2).append("-").append(s1);
+                }
+                // add this edge String to the ArrayList
+                al.add(sb.toString());
+            }
+        }
+
+        /* 2. ===== add edgeStrings to dateEdgeMap ===== */
+        dateEdgeMap.put(currDate, al);
+
+
+        // 3. add contribution to edgeContributionMap
+        /* 4. add hashtags to vertexDegreeMap */
+        // avgDeg.vertexDegreeMapAdd(s1);
+
+
+        // @update HashMaps, numVertices, totalDegree, avgDegree
     }
 
-    public void dateHeapRemove() {
+    public void removeFromDataStructures() {
+        // find min Date from dateHeap
+        Date minDate = (Date) dateHeap.peek();
 
-    }
+        // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
+        while(minDate != null && ((maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
+            // delete tweet with minDate
+            dateHeap.pop();
 
-    public void edgeContributionMapAdd() {
+            /* @update HashMaps, numVertices, totalDegree, avgDegree */
 
-    }
-
-    public void edgeContributionMapRemove() {
-
-    }
-
-    public void dateEdgeMapAdd() {
-
-    }
-
-    public void dateEdgeMapRemove() {
-
-    }
-
-    public void vertexDegreeMapAdd() {
-
-    }
-
-    public void vertexDegreeMapRemove() {
-
+        }
     }
 }
