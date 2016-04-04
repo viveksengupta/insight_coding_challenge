@@ -314,14 +314,8 @@ public class AverageDegree {
         /* 4. ===== add edgeStrings to dateEdgeMap ===== */
         dateEdgeMap.put(currDate, al);
 
-
-
-
-
-        // avgDeg.vertexDegreeMapAdd(s1);
-
-
-        // @update HashMaps, numVertices, totalDegree, avgDegree
+        // re-calculate avgDegree
+        avgDegree = totalDegree / numVertices;
     }
 
     public void removeFromDataStructures() {
