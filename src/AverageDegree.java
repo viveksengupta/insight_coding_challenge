@@ -170,7 +170,7 @@ public class AverageDegree {
                                 //bufferedWriter.write(Double.toString(avgDegree));
                                 System.out.println("numVertices: " + avgDeg.numVertices);
                                 System.out.println("totalDegree: " + avgDeg.totalDegree);
-                                System.out.println("avg degree after deletion(not final): " + Double.toString(avgDeg.avgDegree));
+                                System.out.println("avg degree after deletion(not final): %.2f" + Double.toString(avgDeg.avgDegree));
                             }
 
                             // addition is performed both when (actionType == 1) and (actionType == 0)
@@ -199,7 +199,7 @@ public class AverageDegree {
                             //bufferedWriter.write(Double.toString(avgDegree));
                             System.out.println("numVertices: " + avgDeg.numVertices);
                             System.out.println("totalDegree: " + avgDeg.totalDegree);
-                            System.out.println("avg degree after addition(final): " + Double.toString(avgDeg.avgDegree));
+                            System.out.println("avg degree after addition(final): %.2f" + Double.toString(avgDeg.avgDegree));
                         }
 
                         System.out.println();
@@ -324,13 +324,8 @@ public class AverageDegree {
         /* 4. ===== add edgeStrings to dateEdgeMap ===== */
         dateEdgeMap.put(currDate, al);
 
-        // re-calculate avgDegree
-        if(totalDegree == 0 || numVertices == 0) {
-            avgDegree = 0.0;
-        }
-        else {
-            avgDegree = (double) totalDegree / numVertices;
-        }
+        /* @update avgDegree */
+        calculateAvgDegree();
     }
 
     // while processing a new tweet, remove information of all the tweets that go out of scope from the data structures
@@ -417,12 +412,25 @@ public class AverageDegree {
             }
 
             /* @update avgDegree */
-            if(totalDegree == 0 || numVertices == 0) {
-                avgDegree = 0.0;
-            }
-            else {
-                avgDegree = (double)totalDegree / numVertices;
-            }
+            calculateAvgDegree();
         }
+    }
+
+    public void calculateAvgDegree() {
+        if(totalDegree == 0 || numVertices == 0) {
+            avgDegree = 0.00;
+        }
+        else {
+
+            avgDegree = (double) totalDegree / numVertices;
+            roundAvgDegreeToDecimals();
+        }
+    }
+
+
+    public void roundAvgDegreeToDecimals()
+    {
+        int temp = (int)(avgDegree * Math.pow(10 , 2));
+        avgDegree = ((double)temp)/Math.pow(10 , 2);
     }
 }
