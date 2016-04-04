@@ -29,8 +29,8 @@
       <file leaf-file-name="AverageDegree.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/AverageDegree.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="311" column="13" selection-start-line="311" selection-start-column="13" selection-end-line="311" selection-end-column="13" />
+            <state relative-caret-position="309">
+              <caret line="362" column="96" selection-start-line="362" selection-start-column="96" selection-end-line="362" selection-end-column="96" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -601,8 +601,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/AverageDegree.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="311" column="13" selection-start-line="311" selection-start-column="13" selection-end-line="311" selection-end-column="13" />
+        <state relative-caret-position="309">
+          <caret line="362" column="96" selection-start-line="362" selection-start-column="96" selection-end-line="362" selection-end-column="96" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
             <element signature="imports" expanded="true" />

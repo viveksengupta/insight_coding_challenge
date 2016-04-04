@@ -159,10 +159,17 @@ public class AverageDegree {
 
                                 /* ========== @delete out of scope tweets ========== */
                                 System.out.println("delete out of scope tweets ...");
-                                //avgDeg.removeFromDataStructures();
+                                avgDeg.removeFromDataStructures();
+
+                                System.out.println(avgDeg.dateHeap);
+                                System.out.println(avgDeg.dateEdgeMap);
+                                System.out.println(avgDeg.edgeContributionMap);
+                                System.out.println(avgDeg.vertexDegreeMap);
 
                                 // @uncomment write()
                                 //bufferedWriter.write(Double.toString(avgDegree));
+                                System.out.println("numVertices: " + avgDeg.numVertices);
+                                System.out.println("totalDegree: " + avgDeg.totalDegree);
                                 System.out.println("avg degree after deletion(not final): " + Double.toString(avgDeg.avgDegree));
                             }
 
@@ -190,6 +197,8 @@ public class AverageDegree {
 
                             // @uncomment write()
                             //bufferedWriter.write(Double.toString(avgDegree));
+                            System.out.println("numVertices: " + avgDeg.numVertices);
+                            System.out.println("totalDegree: " + avgDeg.totalDegree);
                             System.out.println("avg degree after addition(final): " + Double.toString(avgDeg.avgDegree));
                         }
 
@@ -340,6 +349,11 @@ public class AverageDegree {
 
                 // get the ArrayList of Strings from dateEdgeMap
                 ArrayList<String> al2 = dateEdgeMap.get(minDate);
+
+                // tweets at timestamp minDate didn't add any edges, hence the ArrayList is empty
+                if(al2 == null) {
+                    return;
+                }
 
                 for(int i=0; i<al2.size(); i++) {
                     String edgeString = al2.get(i);
