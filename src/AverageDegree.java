@@ -31,8 +31,9 @@ public class AverageDegree {
         Date maxDate = null;
 
         // Does the current tweet have a timestamp within 60 seconds of max or greater than max
-        boolean currTweetInScope = false;
+        //boolean currTweetInScope = false;
 
+        // variable to track which action to do, add the tweet? delete other tweets? do nothing?
         // this can take 3 values to indicate what to do with the current tweet
         // -1: the tweet is out of scope, it has a timestamp of more than 60 seconds before the current max
         // 0: the tweet is out of order but in scope, it is within the last 60 seconds of the current max
@@ -79,7 +80,7 @@ public class AverageDegree {
         HashMap<String, Integer> vertexDegreeMap = new HashMap<>();
 
 
-
+    
         // try obtaining a FileReader for tweets.txt, catch FileNotFoundException @catch(fnfe)
         try {
             //Reader reader = new FileReader("tweet_input/tweets.txt");
@@ -124,7 +125,7 @@ public class AverageDegree {
                         // update value of action using currDate and maxDate
                         action = updateAction(currDate, maxDate);
 
-                        System.out.println(currTweetInScope);
+                        //System.out.println(currTweetInScope);
 
                         // if current tweet is not in scope, output the last calculated average degree
                         if(action == -1) {
@@ -151,11 +152,11 @@ public class AverageDegree {
 
 
                                 }
+                                System.out.println("avg degree after deletion(not final): " + Double.toString(avgDegree));
                             }
 
                             // addition is performed both when (action == 1) and (action == 0)
                             /* @add the new tweet */
-                            // @add the new tweet
                             System.out.println("add the new tweet ...");
 
                             // get the hashtags as an array
@@ -166,11 +167,16 @@ public class AverageDegree {
                             if(hashtagArrayLength == 0 || hashtagArrayLength == 1) {
                                 // @uncomment write()
                                 //bufferedWriter.write(Double.toString(avgDegree));
-                                System.out.println(Double.toString(avgDegree));
+                                System.out.println("avg degree after addition(final): " + Double.toString(avgDegree));
                             }
 
                             // if the tweet has at least 2 hashtags
                             else {
+                                // 1. add Date to dateHeap
+                                // 2. add hashtags to vertexDegreeMap
+                                // 3. add edgeStrings to dateEdgeMap
+                                // 4. add contribution to edgeContributionMap
+
                                 // @create ArrayList of edge Strings
                                 ArrayList<String> edgeString = new ArrayList<>();
                                 for (int i = 0; i < hashtagArrayLength; i++) {
@@ -235,5 +241,37 @@ public class AverageDegree {
         }
 
         return act;
+    }
+
+    public static void dateHeapAdd() {
+
+    }
+
+    public static void dateHeapRemove() {
+
+    }
+
+    public static void edgeContributionMapAdd() {
+
+    }
+
+    public static void edgeContributionMapRemove() {
+
+    }
+
+    public static void dateEdgeMapAdd() {
+
+    }
+
+    public static void dateEdgeMapRemove() {
+
+    }
+
+    public static void vertexDegreeMapAdd() {
+
+    }
+
+    public static void vertexDegreeMapRemove() {
+
     }
 }
