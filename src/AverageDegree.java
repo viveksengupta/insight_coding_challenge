@@ -33,6 +33,14 @@ public class AverageDegree {
         // Does the current tweet have a timestamp within 60 seconds of max or greater than max
         boolean currTweetInScope = false;
 
+        // this can take 3 values to indicate what to do with the current tweet
+        // -1: the tweet is out of scope, it has a timestamp of more than 60 seconds before the current max
+        // 0: the tweet is out of order but in scope, it is within the last 60 seconds of the current max
+        // in this case, we will add this tweet, but won't delete anything as the max doesn't change
+        // 1: the tweet is in order and has a timestamp greater than the current max
+        // in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
+        int action = -1;
+
         /* ========== data structures ========== */
 
         /* ---------- 1. BinaryHeap ----------
@@ -79,7 +87,7 @@ public class AverageDegree {
             Reader reader = new FileReader("tweet_input/abc.txt");
             Writer writer = new FileWriter("tweet_output/output.txt");
 
-            // try-with-resources(BufferedReader), catch IOExeption @catch(ioe)
+            // try-with-resources(BufferedReader, BufferedWriter), catch IOExeption @catch(ioe)
             try (BufferedReader bufferedReader = new BufferedReader(reader);
                  BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
 
@@ -95,45 +103,60 @@ public class AverageDegree {
 
                         // this json does not have either created_at or entities
                         // it is probably a rate limiting message so it's ignored - line.startsWith("{\"limit\":")
-                        // it may also be something else that can be safely ignored
+                        // it may rarely also be something else that can be safely ignored
                         if(!obj.has("created_at") || !obj.has("entities")) {
                             continue;
                         }
 
-                        // if it was not a rate limiting message, we process the line
+                        /* if it was not a rate limiting message, we process the line */
+
                         // get the timestamp
                         String timestamp = obj.getString("created_at");
                         System.out.print(timestamp + "\t");
 
-                        // Get Java Date object from Timestamp String
+                        // get Java Date object from Timestamp String
                         Date currDate = getTwitterDate(timestamp);
 
-                        // Update values of maxDate and currTweetInScope
-                        // tweetScope is returned as boolean
-                        // maxDate is passed as reference and updated in the function
-                        maxDate = updateMaxDate(currDate, maxDate);
-                        currTweetInScope = updateTweetScope(currDate, maxDate);
+                        // update values of maxDate and currTweetInScope using currDate and maxDate
+                        //maxDate = updateMaxDate(currDate, maxDate);
+                        //currTweetInScope = updateTweetScope(currDate, maxDate);
+
+                        // update value of action using currDate and maxDate
+                        action = updateAction(currDate, maxDate);
 
                         System.out.println(currTweetInScope);
 
                         // if current tweet is not in scope, output the last calculated average degree
-                        if(!currTweetInScope) {
+                        if(action == -1) {
                             // @uncomment write()
                             //bufferedWriter.write(Double.toString(avgDegree));
                             System.out.println(Double.toString(avgDegree));
                         }
 
-                        // if current tweet is in scope, we have to calculate the new average degree
+                        // 0: if current tweet is in scope but maxDate does not change, just add this tweet
+                        // 1: if current tweet is in scope and changes maxDate, delete necessary tweets and add this tweet
                         else {
-                            // @delete out of scope tweets
-                            System.out.println("delete out of scope tweets");
+                            // deletion is only performed if (action == 1) and not if (action == 0)
+                            if(action == 1) {
+                                /* @delete out of scope tweets */
+                                System.out.println("delete out of scope tweets ...");
 
-                            // while loop to find min Date from heap
-                            // if min is out of scope, delete/extract min Date
-                            // @update HashMaps, numVertices, totalDegree, avgDegree
+                                // find min Date from dateHeap
+                                Date minDate = (Date) dateHeap.peek();
+                                // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
+                                while(minDate != null && ((maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
+                                    // delete tweet with minDate
+                                    dateHeap.pop();
+                                /* @update HashMaps, numVertices, totalDegree, avgDegree */
 
+
+                                }
+                            }
+
+                            // addition is performed both when (action == 1) and (action == 0)
+                            /* @add the new tweet */
                             // @add the new tweet
-                            System.out.println("add the new tweet");
+                            System.out.println("add the new tweet ...");
 
                             // get the hashtags as an array
                             JSONArray hashtagArray = obj.getJSONObject("entities").getJSONArray("hashtags");
@@ -146,8 +169,10 @@ public class AverageDegree {
                                 System.out.println(Double.toString(avgDegree));
                             }
 
+                            // if the tweet has at least 2 hashtags
                             else {
                                 // @create ArrayList of edge Strings
+                                ArrayList<String> edgeString = new ArrayList<>();
                                 for (int i = 0; i < hashtagArrayLength; i++) {
                                     String hashtag = hashtagArray.getJSONObject(i).getString("text");
                                     System.out.print(hashtag + "\t");
@@ -192,28 +217,23 @@ public class AverageDegree {
         return date;
     }
 
-    public static Date updateMaxDate(Date currDate, Date maxDate) {
+    public static int updateAction(Date currDate, Date maxDate) {
+        int act;
+
         // if this is the 1st valid tweet (might have seen rate limit messages before)
         // or this tweet has a timestamp later than the current max
         if(maxDate == null || currDate.compareTo(maxDate) > 0) {
-            return currDate;
+            act = 1;
         }
-
-        // if this tweet has a timestamp equal to or less than the current max
+        // if this tweet has a timestamp within 60 seconds before the current max
+        else if((maxDate.getTime() - currDate.getTime()) / 1000 <= 60) {
+            act = 0;
+        }
+        // if this tweet has a timestamp more than 60 seconds before than the current max
         else {
-            return maxDate;
-        }
-    }
-
-    public static boolean updateTweetScope(Date currDate, Date maxDate) {
-        // if this tweet has a timestamp later than or within the last 60 seconds of the current max
-        if(currDate.compareTo(maxDate) > 0 || ((maxDate.getTime() - currDate.getTime()) / 1000 <= 60)) {
-            return true;
+            act = -1;
         }
 
-        // if this tweet has a timestamp more than 60 seconds before the current max
-        else {
-            return false;
-        }
+        return act;
     }
 }
