@@ -138,7 +138,7 @@ public class AverageDegree {
                         System.out.println("currDate: " + avgDeg.currDate);
 
                         // update value of actionType using currDate and maxDate
-                        avgDeg.setActionType();
+                        avgDeg.setActionTypeFromCurrDateAndMaxDate();
                         System.out.println("maxDate: " + avgDeg.maxDate);
                         System.out.println("actionType: " + avgDeg.actionType);
 
@@ -227,7 +227,7 @@ public class AverageDegree {
     }
 
     // set actionType to -1, 0 or 1 depending on currDate and maxDate
-    public void setActionType() {
+    public void setActionTypeFromCurrDateAndMaxDate() {
 
         // if this is the 1st valid tweet (might have seen rate limit messages before)
         // or this tweet has a timestamp later than the current max
@@ -236,7 +236,7 @@ public class AverageDegree {
             actionType = 1;
         }
         // if this tweet has a timestamp within 60 seconds before the current max
-        else if((maxDate.getTime() - currDate.getTime()) / 1000 <= 60) {
+        else if((maxDate.getTime() - currDate.getTime()) / 1000 < 60) {
             actionType = 0;
         }
         // if this tweet has a timestamp more than 60 seconds before than the current max
@@ -245,6 +245,7 @@ public class AverageDegree {
         }
     }
 
+    // for every in scope tweet, format and add relevant information to the data structures
     public void addToDataStructures(JSONArray jsonArr, int jsonArrLen) throws JSONException {
 
         /* ===== 1. add Date to dateHeap ===== */
@@ -315,20 +316,98 @@ public class AverageDegree {
         dateEdgeMap.put(currDate, al);
 
         // re-calculate avgDegree
-        avgDegree = totalDegree / numVertices;
+        if(totalDegree == 0 || numVertices == 0) {
+            avgDegree = 0.0;
+        }
+        else {
+            avgDegree = numVertices / totalDegree;
+        }
     }
 
+    // while processing a new tweet, remove information of all the tweets that go out of scope from the data structures
     public void removeFromDataStructures() {
-        // find min Date from dateHeap
-        Date minDate = (Date) dateHeap.peek();
 
         // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
-        while(minDate != null && ((maxDate.getTime() - minDate.getTime()) / 1000 > 60)) {
-            // delete tweet with minDate
-            dateHeap.pop();
+        while(!dateHeap.isEmpty()) {
+            // grab the min date
+            Date minDate = (Date) dateHeap.peek();
 
-            /* @update HashMaps, numVertices, totalDegree, avgDegree */
+            // if the minimum Date has gone out of scope, it needs to be deleted
+            if((maxDate.getTime() - minDate.getTime()) / 1000 >= 60) {
 
+                /* ===== 1. delete Date from dateHeap ===== */
+                dateHeap.pop();
+
+                // get the ArrayList of Strings from dateEdgeMap
+                ArrayList<String> al2 = dateEdgeMap.get(minDate);
+
+                for(int i=0; i<al2.size(); i++) {
+                    String edgeString = al2.get(i);
+
+                    // if there are more than 1 contribution towards this edge,
+                    // i.e., if some other tweet(s) is/are contributing towards this edge as well
+                    // then the edge won't be deleted, hence there would be no change to the average degree
+                    int contribution = edgeContributionMap.get(edgeString);
+                    if(contribution > 1) {
+                        edgeContributionMap.put(edgeString, contribution-1);
+                    }
+
+                    // if the only contribution towards this edge is from a tweet having timestamp minDate
+                    else {
+                        // the edge was contributing 2 towards the total degree, 1 for each vertex
+                        totalDegree -= 2;
+
+                        // identifying the location of the vertex separator "-" in the edge String
+                        int index = edgeString.indexOf("-");
+                        // s1 will hold the 1st vertex in the edge
+                        String s1 = edgeString.substring(0,index);
+                        // s2 will hold the 2nd vertex in the edge
+                        String s2 = edgeString.substring(index+1);
+
+                        /* 2. ===== delete vertex from vertexDegreeMap ===== */
+
+                        int degree = vertexDegreeMap.get(s1);
+                        // if degree of the vertex is greater than 1, we will decrease the degree by 1
+                        if(degree > 1) {
+                            vertexDegreeMap.put(s1, degree-1);
+                        }
+                        // if degree of the vertex is 1, then the vertex needs to be deleted
+                        else {
+                            vertexDegreeMap.remove(s1);
+                            numVertices--;
+                        }
+
+                        degree = vertexDegreeMap.get(s2);
+                        // if degree of the vertex is greater than 1, we will decrease the degree by 1
+                        if(degree > 1) {
+                            vertexDegreeMap.put(s2, degree-1);
+                        }
+                        // if degree of the vertex is 1, then the vertex needs to be deleted
+                        else {
+                            vertexDegreeMap.remove(s2);
+                            numVertices--;
+                        }
+
+                        /* ===== 3. delete contribution from edgeContributionMap ===== */
+                        edgeContributionMap.remove(edgeString);
+                    }
+                }
+
+                /* 4. ===== delete edgeStrings from dateEdgeMap ===== */
+                dateEdgeMap.remove(minDate);
+            }
+            // if the minimum Date is still in scope, break out of the while loop
+            else {
+                break;
+            }
+
+            /* @update avgDegree */
+            if(totalDegree == 0 || numVertices == 0) {
+                avgDegree = 0.0;
+            }
+            else {
+                avgDegree = numVertices / totalDegree;
+            }
         }
     }
 }
