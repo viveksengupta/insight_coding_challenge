@@ -32,7 +32,7 @@ public class AverageDegree {
     // 5. the timestamp of the current tweet being processed
     Date currDate;
 
-    /* 5. which action to do? add the tweet? delete other tweets? do nothing?
+    /* 5. which actionType to do? add the tweet? delete other tweets? do nothing?
      * this can take 3 values to indicate what to do with the current tweet
      * -1: the tweet is out of scope, it has a timestamp of more than 60 seconds before the current max
      * 0: the tweet is out of order but in scope, it is within the last 60 seconds of the current max
@@ -40,7 +40,7 @@ public class AverageDegree {
      * 1: the tweet is in order and has a timestamp greater than the current max
      * in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
      */
-    int action;
+    int actionType;
 
 
     /* ========== data structures ========== */
@@ -50,7 +50,7 @@ public class AverageDegree {
      * only insertions and deletions/extractions are needed
      * using BinaryHeap implementation from org.apache.commons.collections
      */
-    BinaryHeap dateHeap = new BinaryHeap();
+    BinaryHeap dateHeap;
 
     /* ---------- 2. HashMap<Date, ArrayList<String>> ----------
      * Hashtable with tweet dates as keys and list of edge Strings formed by the hashtags as values
@@ -58,7 +58,7 @@ public class AverageDegree {
      * HashMap entry: < date123: < "a-b", "a-c", "b-c" > >
      * using standard Java HashMap implementation
      */
-    HashMap<Date, ArrayList<String>> dateEdgeMap = new HashMap<>();
+    HashMap<Date, ArrayList<String>> dateEdgeMap;
 
     /* ---------- 3. HashMap<String, Integer> ----------
      * Hashtable with edge Strings as keys and how many tweets contributed those edges as values
@@ -69,7 +69,7 @@ public class AverageDegree {
      * we maintain contributions only from tweets in the 60 second window
      * using standard Java HashMap implementation
      */
-    HashMap<String, Integer> edgeContributionMap = new HashMap<>();
+    HashMap<String, Integer> edgeContributionMap;
 
     /* ---------- 4. HashMap<String, Integer> ----------
      * Hashtable with vertices(hashtags) as keys and degrees as values
@@ -78,7 +78,7 @@ public class AverageDegree {
      * "a" has 3 edges to "b", "c" and "d";   "d" has only 1 edge to "a"
      * this HashMap lets us determine when a vertex is not connected to anyone else
      */
-    HashMap<String, Integer> vertexDegreeMap = new HashMap<>();
+    HashMap<String, Integer> vertexDegreeMap;
 
 
     public AverageDegree() {
@@ -87,7 +87,11 @@ public class AverageDegree {
         avgDegree = 0.0;
         maxDate = null;
         currDate = null;
-        action = -1;
+        actionType = -1;
+        dateHeap = new BinaryHeap();
+        dateEdgeMap = new HashMap<>();
+        edgeContributionMap = new HashMap<>();
+        vertexDegreeMap = new HashMap<>();
     }
 
 
@@ -113,12 +117,13 @@ public class AverageDegree {
                     // try to get a handle on the JSONObject, catch JSONException @catch(jsone)
                     try {
                         JSONObject obj = new JSONObject(line);
-                        System.out.println("another line");
+                        System.out.println("another line: " + obj);
 
                         // this json does not have either created_at or entities
                         // it is probably a rate limiting message so it's ignored - line.startsWith("{\"limit\":")
                         // it may rarely also be something else that can be safely ignored
                         if(!obj.has("created_at") || !obj.has("entities")) {
+                            System.out.println("not a valid tweet\n");
                             continue;
                         }
 
@@ -126,18 +131,21 @@ public class AverageDegree {
 
                         // get the timestamp
                         String timestamp = obj.getString("created_at");
-                        System.out.print(timestamp + "\t");
+                        System.out.println("timestamp: " + timestamp);
 
                         // get Java Date object from Timestamp String
                         avgDeg.setCurrDateFromTweetTimestamp(timestamp);
+                        System.out.println("currDate: " + avgDeg.currDate);
 
-                        // update value of action using currDate and maxDate
-                        avgDeg.updateAction();
+                        // update value of actionType using currDate and maxDate
+                        avgDeg.setActionType();
+                        System.out.println("maxDate: " + avgDeg.maxDate);
+                        System.out.println("actionType: " + avgDeg.actionType);
 
                         //System.out.println(currTweetInScope);
 
                         // if current tweet is not in scope, output the last calculated average degree
-                        if(avgDeg.action == -1) {
+                        if(avgDeg.actionType == -1) {
                             // @uncomment write()
                             //bufferedWriter.write(Double.toString(avgDegree));
                             System.out.println(Double.toString(avgDeg.avgDegree));
@@ -146,24 +154,27 @@ public class AverageDegree {
                         // 0: if current tweet is in scope but maxDate does not change, just add this tweet
                         // 1: if current tweet is in scope and changes maxDate, delete necessary tweets and add this tweet
                         else {
-                            // deletion is only performed if (action == 1) and not if (action == 0)
-                            if(avgDeg.action == 1) {
+                            // deletion is only performed if (actionType == 1) and not if (actionType == 0)
+                            if(avgDeg.actionType == 1) {
 
                                 /* ========== @delete out of scope tweets ========== */
                                 System.out.println("delete out of scope tweets ...");
-                                avgDeg.removeFromDataStructures();
+                                //avgDeg.removeFromDataStructures();
 
                                 // @uncomment write()
                                 //bufferedWriter.write(Double.toString(avgDegree));
                                 System.out.println("avg degree after deletion(not final): " + Double.toString(avgDeg.avgDegree));
                             }
 
-                            // addition is performed both when (action == 1) and (action == 0)
+                            // addition is performed both when (actionType == 1) and (actionType == 0)
 
                             /* ========== @add the new tweet ========== */
                             // get the hashtags as an array
                             JSONArray hashtagJsonArray = obj.getJSONObject("entities").getJSONArray("hashtags");
                             int hashtagJsonArrayLength = hashtagJsonArray.length();
+
+                            System.out.println(hashtagJsonArray);
+                            System.out.println(hashtagJsonArrayLength);
 
                             System.out.println("add the new tweet ...");
 
@@ -171,6 +182,10 @@ public class AverageDegree {
                             // if the tweet has at least 2 hashtags
                             if(hashtagJsonArrayLength > 1) {
                                 avgDeg.addToDataStructures(hashtagJsonArray, hashtagJsonArrayLength);
+                                System.out.println(avgDeg.dateHeap);
+                                System.out.println(avgDeg.dateEdgeMap);
+                                System.out.println(avgDeg.edgeContributionMap);
+                                System.out.println(avgDeg.vertexDegreeMap);
                             }
 
                             // @uncomment write()
@@ -200,34 +215,33 @@ public class AverageDegree {
     }
 
     // Parse tweet timestamp, return Java Date
-    public Date setCurrDateFromTweetTimestamp(String timestamp) {
-        Date date = null;
+    public void setCurrDateFromTweetTimestamp(String timestamp) {
         try {
             final String TWITTER = "EEE MMM dd HH:mm:ss zzzzz yyyy";
             SimpleDateFormat sdf = new SimpleDateFormat(TWITTER);
             sdf.setLenient(true);
-            date = sdf.parse(timestamp);
+            currDate = sdf.parse(timestamp);
         } catch(ParseException pe) {
             pe.printStackTrace();
         }
-        return date;
     }
 
-    // set action to -1, 0 or 1 depending on currDate and maxDate
-    public void updateAction() {
+    // set actionType to -1, 0 or 1 depending on currDate and maxDate
+    public void setActionType() {
 
         // if this is the 1st valid tweet (might have seen rate limit messages before)
         // or this tweet has a timestamp later than the current max
         if(maxDate == null || currDate.compareTo(maxDate) > 0) {
-            action = 1;
+            maxDate = currDate;
+            actionType = 1;
         }
         // if this tweet has a timestamp within 60 seconds before the current max
         else if((maxDate.getTime() - currDate.getTime()) / 1000 <= 60) {
-            action = 0;
+            actionType = 0;
         }
         // if this tweet has a timestamp more than 60 seconds before than the current max
         else {
-            action = -1;
+            actionType = -1;
         }
     }
 
@@ -252,7 +266,7 @@ public class AverageDegree {
             String s1 = jsonArr.getJSONObject(i).getString("text");
 
             for (int j = i + 1; j < jsonArrLen; j++) {
-                String s2 = jsonArr.getJSONObject(i).getString("text");
+                String s2 = jsonArr.getJSONObject(j).getString("text");
 
                 StringBuilder sb = new StringBuilder();
                 if (s1.compareTo(s2) < 0) {
@@ -260,17 +274,50 @@ public class AverageDegree {
                 } else {
                     sb.append(s2).append("-").append(s1);
                 }
-                // add this edge String to the ArrayList
+
+                String edgeString = new String(sb);
+
+                /* ===== 2. add contribution to edgeContributionMap ===== */
+                if(edgeContributionMap.containsKey(edgeString)) {
+                    edgeContributionMap.put(edgeString, edgeContributionMap.get(edgeString)+1);
+                }
+                else {
+                    edgeContributionMap.put(edgeString, 1);
+                    totalDegree += 2;
+
+                    /* 3. ===== add degree to vertexDegreeMap ===== */
+
+                    // increase degree of hashtag vertex s1
+                    if(vertexDegreeMap.containsKey(s1)) {
+                        vertexDegreeMap.put(s1, vertexDegreeMap.get(s1)+1);
+                    }
+                    else {
+                        vertexDegreeMap.put(s1, 1);
+                        numVertices++;
+                    }
+
+                    // increase degree of hashtag vertex s2
+                    if(vertexDegreeMap.containsKey(s2)) {
+                        vertexDegreeMap.put(s2, vertexDegreeMap.get(s2)+1);
+                    }
+                    else {
+                        vertexDegreeMap.put(s2, 1);
+                        numVertices++;
+                    }
+                }
+
+                // add this edgeString to the ArrayList
                 al.add(sb.toString());
             }
         }
 
-        /* 2. ===== add edgeStrings to dateEdgeMap ===== */
+        /* 4. ===== add edgeStrings to dateEdgeMap ===== */
         dateEdgeMap.put(currDate, al);
 
 
-        // 3. add contribution to edgeContributionMap
-        /* 4. add hashtags to vertexDegreeMap */
+
+
+
         // avgDeg.vertexDegreeMapAdd(s1);
 
 
