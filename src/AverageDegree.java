@@ -147,9 +147,9 @@ public class AverageDegree {
 
                         // if current tweet is not in scope, output the last calculated average degree
                         if(avgDeg.actionType == -1) {
-                            // @uncomment write()
-                            //bufferedWriter.write(Double.toString(avgDegree));
                             System.out.println(Double.toString(avgDeg.avgDegree));
+                            // @write() avgDegree to output.txt
+                            bufferedWriter.write(avgDeg.truncateAvgDegree().toString() + "\n");
                         }
 
                         // 0: if current tweet is in scope but maxDate does not change, just add this tweet

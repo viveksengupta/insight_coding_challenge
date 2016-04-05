@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="02e51d58-00a3-4498-9684-05a209fa23c1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/insight_coding_challenge/AverageDegree.class" afterPath="$PROJECT_DIR$/out/production/insight_coding_challenge/AverageDegree.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AverageDegree.java" afterPath="$PROJECT_DIR$/src/AverageDegree.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tweet_output/output.txt" afterPath="$PROJECT_DIR$/tweet_output/output.txt" />
     </list>
     <ignored path="insight_coding_challenge.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,8 +28,8 @@
       <file leaf-file-name="AverageDegree.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/AverageDegree.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1086">
-              <caret line="193" column="75" selection-start-line="193" selection-start-column="75" selection-end-line="193" selection-end-column="75" />
+            <state relative-caret-position="360">
+              <caret line="150" column="63" selection-start-line="150" selection-start-column="63" selection-end-line="150" selection-end-column="63" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -612,8 +610,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/AverageDegree.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1086">
-          <caret line="193" column="75" selection-start-line="193" selection-start-column="75" selection-end-line="193" selection-end-column="75" />
+        <state relative-caret-position="360">
+          <caret line="150" column="63" selection-start-line="150" selection-start-column="63" selection-end-line="150" selection-end-column="63" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
             <element signature="imports" expanded="true" />
