@@ -19,19 +19,19 @@ public class AverageDegree {
     /* ========== member variables ========== */
 
     // 1. total number of vertices in the current hashtag graph
-    int numVertices;
+    private int numVertices;
 
     // 2. total degree of all vertices in the current hashtag graph
-    int totalDegree;
+    private int totalDegree;
 
     // 3. current average degree in the hashtag graph (totalDegree / numVertices)
-    double avgDegree;
+    private double avgDegree;
 
     // 4. the maximum timestamp of the latest tweet processed so far
-    Date maxDate;
+    private Date maxDate;
 
     // 5. the timestamp of the current tweet being processed
-    Date currDate;
+    private Date currDate;
 
     /* 5. which actionType to do? add the tweet? delete other tweets? do nothing?
      * this can take 3 values to indicate what to do with the current tweet
@@ -41,7 +41,7 @@ public class AverageDegree {
      * 1: the tweet is in order and has a timestamp greater than the current max
      * in this case, we will add this tweet and delete all the tweets that go out of the new 60 second scope
      */
-    int actionType;
+    private int actionType;
 
 
     /* ========== data structures ========== */
@@ -51,7 +51,7 @@ public class AverageDegree {
      * only insertions and deletions/extractions are needed
      * using BinaryHeap implementation from org.apache.commons.collections
      */
-    BinaryHeap dateHeap;
+    private BinaryHeap dateHeap;
 
     /* ---------- 2. HashMap<Date, ArrayList<String>> ----------
      * Hashtable with tweet dates as keys and list of edge Strings formed by the hashtags as values
@@ -59,7 +59,7 @@ public class AverageDegree {
      * HashMap entry: < date123: < "a-b", "a-c", "b-c" > >
      * using standard Java HashMap implementation
      */
-    HashMap<Date, ArrayList<String>> dateEdgeMap;
+    private HashMap<Date, ArrayList<String>> dateEdgeMap;
 
     /* ---------- 3. HashMap<String, Integer> ----------
      * Hashtable with edge Strings as keys and how many tweets contributed those edges as values
@@ -70,7 +70,7 @@ public class AverageDegree {
      * we maintain contributions only from tweets in the 60 second window
      * using standard Java HashMap implementation
      */
-    HashMap<String, Integer> edgeContributionMap;
+    private HashMap<String, Integer> edgeContributionMap;
 
     /* ---------- 4. HashMap<String, Integer> ----------
      * Hashtable with vertices(hashtags) as keys and degrees as values
@@ -79,7 +79,7 @@ public class AverageDegree {
      * "a" has 3 edges to "b", "c" and "d";   "d" has only 1 edge to "a"
      * this HashMap lets us determine when a vertex is not connected to anyone else
      */
-    HashMap<String, Integer> vertexDegreeMap;
+    private HashMap<String, Integer> vertexDegreeMap;
 
 
     public AverageDegree() {
@@ -159,7 +159,7 @@ public class AverageDegree {
                             if(avgDeg.actionType == 1) {
 
                                 /* ========== @delete out of scope tweets ========== */
-                                System.out.println("delete out of scope tweets ...");
+                                //System.out.println("delete out of scope tweets ...");
                                 avgDeg.removeFromDataStructures();
 
                                 //System.out.println(avgDeg.dateHeap);
@@ -179,10 +179,10 @@ public class AverageDegree {
                             JSONArray hashtagJsonArray = obj.getJSONObject("entities").getJSONArray("hashtags");
                             int hashtagJsonArrayLength = hashtagJsonArray.length();
 
-                            System.out.println(hashtagJsonArray);
-                            System.out.println(hashtagJsonArrayLength);
+                            //System.out.println(hashtagJsonArray);
+                            //System.out.println(hashtagJsonArrayLength);
 
-                            System.out.println("add the new tweet ...");
+                            //System.out.println("add the new tweet ...");
 
                             // if the tweet has no hashtags or only 1 hashtag, this won't modify the graph
                             // if the tweet has at least 2 hashtags
@@ -204,7 +204,7 @@ public class AverageDegree {
                             bufferedWriter.write(avgDeg.truncateAvgDegree().toString() + "\n");
                         }
 
-                        System.out.println();
+                        //System.out.println();
 
                     // @catch(jsone)
                     } catch(JSONException jsone) {
@@ -220,13 +220,14 @@ public class AverageDegree {
         // @catch(fnfe)
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
+        // @catch(ioe)
         }  catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
 
     // Parse tweet timestamp, return Java Date
-    public void setCurrDateFromTweetTimestamp(String timestamp) {
+    private void setCurrDateFromTweetTimestamp(String timestamp) {
         try {
             final String TWITTER = "EEE MMM dd HH:mm:ss zzzzz yyyy";
             SimpleDateFormat sdf = new SimpleDateFormat(TWITTER);
@@ -238,7 +239,7 @@ public class AverageDegree {
     }
 
     // set actionType to -1, 0 or 1 depending on currDate and maxDate
-    public void setActionTypeFromCurrDateAndMaxDate() {
+    private void setActionTypeFromCurrDateAndMaxDate() {
 
         // if this is the 1st valid tweet (might have seen rate limit messages before)
         // or this tweet has a timestamp later than the current max
@@ -257,7 +258,7 @@ public class AverageDegree {
     }
 
     // for every in scope tweet, format and add relevant information to the data structures
-    public void addToDataStructures(JSONArray jsonArr, int jsonArrLen) throws JSONException {
+    private void addToDataStructures(JSONArray jsonArr, int jsonArrLen) throws JSONException {
 
         /* ===== 1. add Date to dateHeap ===== */
         dateHeap.insert(currDate);
@@ -331,7 +332,7 @@ public class AverageDegree {
     }
 
     // while processing a new tweet, remove information of all the tweets that go out of scope from the data structures
-    public void removeFromDataStructures() {
+    private void removeFromDataStructures() {
 
         // while dateHeap is not empty and minDate has timestamp more than 60 seconds before maxDate
         while(!dateHeap.isEmpty()) {
@@ -419,7 +420,7 @@ public class AverageDegree {
     }
 
     // calculate avgDegree from totalDegree and numVertices
-    public void calculateAvgDegree() {
+    private void calculateAvgDegree() {
         if(totalDegree == 0 || numVertices == 0) {
             avgDegree = 0.00;
         }
