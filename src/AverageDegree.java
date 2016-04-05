@@ -103,8 +103,8 @@ public class AverageDegree {
         try {
             //Reader reader = new FileReader("tweet_input/tweets.txt");
             // delete this line later
-            Reader reader = new FileReader("../tweet_input/abc.txt");
-            Writer writer = new FileWriter("../tweet_output/output.txt");
+            Reader reader = new FileReader("tweet_input/tweets.txt");
+            Writer writer = new FileWriter("tweet_output/output.txt");
 
             // try-with-resources(BufferedReader, BufferedWriter), catch IOExeption @catch(ioe)
             try (BufferedReader bufferedReader = new BufferedReader(reader);
@@ -118,13 +118,13 @@ public class AverageDegree {
                     // try to get a handle on the JSONObject, catch JSONException @catch(jsone)
                     try {
                         JSONObject obj = new JSONObject(line);
-                        System.out.println("another line: " + obj);
+                        //System.out.println("another line: " + obj);
 
                         // this json does not have either created_at or entities
                         // it is probably a rate limiting message so it's ignored - line.startsWith("{\"limit\":")
                         // it may rarely also be something else that can be safely ignored
                         if(!obj.has("created_at") || !obj.has("entities")) {
-                            System.out.println("not a valid tweet\n");
+                            //System.out.println("not a valid tweet\n");
                             continue;
                         }
 
@@ -132,22 +132,22 @@ public class AverageDegree {
 
                         // get the timestamp
                         String timestamp = obj.getString("created_at");
-                        System.out.println("timestamp: " + timestamp);
+                        //System.out.println("timestamp: " + timestamp);
 
                         // get Java Date object from Timestamp String
                         avgDeg.setCurrDateFromTweetTimestamp(timestamp);
-                        System.out.println("currDate: " + avgDeg.currDate);
+                        //System.out.println("currDate: " + avgDeg.currDate);
 
                         // update value of actionType using currDate and maxDate
                         avgDeg.setActionTypeFromCurrDateAndMaxDate();
-                        System.out.println("maxDate: " + avgDeg.maxDate);
-                        System.out.println("actionType: " + avgDeg.actionType);
+                        //System.out.println("maxDate: " + avgDeg.maxDate);
+                        //System.out.println("actionType: " + avgDeg.actionType);
 
                         //System.out.println(currTweetInScope);
 
                         // if current tweet is not in scope, output the last calculated average degree
                         if(avgDeg.actionType == -1) {
-                            System.out.println(Double.toString(avgDeg.avgDegree));
+                            //System.out.println(Double.toString(avgDeg.avgDegree));
                             // @write() avgDegree to output.txt
                             bufferedWriter.write(avgDeg.truncateAvgDegree().toString() + "\n");
                         }
@@ -162,14 +162,14 @@ public class AverageDegree {
                                 System.out.println("delete out of scope tweets ...");
                                 avgDeg.removeFromDataStructures();
 
-                                System.out.println(avgDeg.dateHeap);
-                                System.out.println(avgDeg.dateEdgeMap);
-                                System.out.println(avgDeg.edgeContributionMap);
-                                System.out.println(avgDeg.vertexDegreeMap);
+                                //System.out.println(avgDeg.dateHeap);
+                                //System.out.println(avgDeg.dateEdgeMap);
+                                //System.out.println(avgDeg.edgeContributionMap);
+                                //System.out.println(avgDeg.vertexDegreeMap);
 
-                                System.out.println("numVertices: " + avgDeg.numVertices);
-                                System.out.println("totalDegree: " + avgDeg.totalDegree);
-                                System.out.printf("avg degree after deletion(not final): " + avgDeg.truncateAvgDegree());
+                                //System.out.println("numVertices: " + avgDeg.numVertices);
+                                //System.out.println("totalDegree: " + avgDeg.totalDegree);
+                                //System.out.printf("avg degree after deletion(not final): " + avgDeg.truncateAvgDegree());
                             }
 
                             // addition is performed both when (actionType == 1) and (actionType == 0)
@@ -188,16 +188,18 @@ public class AverageDegree {
                             // if the tweet has at least 2 hashtags
                             if(hashtagJsonArrayLength > 1) {
                                 avgDeg.addToDataStructures(hashtagJsonArray, hashtagJsonArrayLength);
-                                System.out.println(avgDeg.dateHeap);
-                                System.out.println(avgDeg.dateEdgeMap);
-                                System.out.println(avgDeg.edgeContributionMap);
-                                System.out.println(avgDeg.vertexDegreeMap);
+
+                                //System.out.println(avgDeg.dateHeap);
+                                //System.out.println(avgDeg.dateEdgeMap);
+                                //System.out.println(avgDeg.edgeContributionMap);
+                                //System.out.println(avgDeg.vertexDegreeMap);
                             }
 
 
-                            System.out.println("numVertices: " + avgDeg.numVertices);
-                            System.out.println("totalDegree: " + avgDeg.totalDegree);
-                            System.out.printf("avg degree after addition(final): " + avgDeg.truncateAvgDegree());
+                            //System.out.println("numVertices: " + avgDeg.numVertices);
+                            //System.out.println("totalDegree: " + avgDeg.totalDegree);
+                            //System.out.printf("avg degree after addition(final): " + avgDeg.truncateAvgDegree());
+
                             // @write() avgDegree to output.txt
                             bufferedWriter.write(avgDeg.truncateAvgDegree().toString() + "\n");
                         }
