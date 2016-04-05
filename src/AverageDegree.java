@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,9 +83,9 @@ public class AverageDegree {
 
 
     public AverageDegree() {
-        numVertices = 0;
-        totalDegree = 0;
-        avgDegree = 0.0;
+        numVertices = 2;
+        totalDegree = 7;
+        avgDegree = 0.00;
         maxDate = null;
         currDate = null;
         actionType = -1;
@@ -166,11 +167,9 @@ public class AverageDegree {
                                 System.out.println(avgDeg.edgeContributionMap);
                                 System.out.println(avgDeg.vertexDegreeMap);
 
-                                // @uncomment write()
-                                //bufferedWriter.write(Double.toString(avgDegree));
                                 System.out.println("numVertices: " + avgDeg.numVertices);
                                 System.out.println("totalDegree: " + avgDeg.totalDegree);
-                                System.out.println("avg degree after deletion(not final): %.2f" + Double.toString(avgDeg.avgDegree));
+                                System.out.printf("avg degree after deletion(not final): " + avgDeg.truncateAvgDegree());
                             }
 
                             // addition is performed both when (actionType == 1) and (actionType == 0)
@@ -195,11 +194,12 @@ public class AverageDegree {
                                 System.out.println(avgDeg.vertexDegreeMap);
                             }
 
-                            // @uncomment write()
-                            //bufferedWriter.write(Double.toString(avgDegree));
+
                             System.out.println("numVertices: " + avgDeg.numVertices);
                             System.out.println("totalDegree: " + avgDeg.totalDegree);
-                            System.out.println("avg degree after addition(final): %.2f" + Double.toString(avgDeg.avgDegree));
+                            System.out.printf("avg degree after addition(final): " + avgDeg.truncateAvgDegree());
+                            // @write() avgDegree to output.txt
+                            bufferedWriter.write(avgDeg.truncateAvgDegree().toString() + "\n");
                         }
 
                         System.out.println();
@@ -416,6 +416,7 @@ public class AverageDegree {
         }
     }
 
+    // calculate avgDegree from totalDegree and numVertices
     public void calculateAvgDegree() {
         if(totalDegree == 0 || numVertices == 0) {
             avgDegree = 0.00;
@@ -423,14 +424,11 @@ public class AverageDegree {
         else {
 
             avgDegree = (double) totalDegree / numVertices;
-            roundAvgDegreeToDecimals();
         }
     }
 
-
-    public void roundAvgDegreeToDecimals()
+    private BigDecimal truncateAvgDegree()
     {
-        int temp = (int)(avgDegree * Math.pow(10 , 2));
-        avgDegree = ((double)temp)/Math.pow(10 , 2);
+        return new BigDecimal(String.valueOf(avgDegree)).setScale(2, BigDecimal.ROUND_FLOOR);
     }
 }
