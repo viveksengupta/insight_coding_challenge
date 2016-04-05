@@ -103,8 +103,8 @@ public class AverageDegree {
         try {
             //Reader reader = new FileReader("tweet_input/tweets.txt");
             // delete this line later
-            Reader reader = new FileReader("tweet_input/tweets.txt");
-            Writer writer = new FileWriter("tweet_output/output.txt");
+            Reader reader = new FileReader("../tweet_input/tweets.txt");
+            Writer writer = new FileWriter("../tweet_output/output.txt");
 
             // try-with-resources(BufferedReader, BufferedWriter), catch IOExeption @catch(ioe)
             try (BufferedReader bufferedReader = new BufferedReader(reader);
