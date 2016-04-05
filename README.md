@@ -3,7 +3,7 @@ Vivek's solution to coding challenge for Insight data engineering fellowship
 
 
 
->>>>>>>>>>>>>>>>>>>> Dependencies <<<<<<<<<<<<<<<<<<<<
+<<<<<<<<<<<<<<<<<<<< Dependencies <<<<<<<<<<<<<<<<<<<<
 
 1. org.json.jar (JSON library for parsing JSON)
 2. commons.collections-2.0.jar (Apache Commons Collections library for Binary Heap)
@@ -12,7 +12,7 @@ These jar files are in the src directory itself
 
 
 
->>>>>>>>>>>>>>>>>>>> Approach <<<<<<<<<<<<<<<<<<<<
+<<<<<<<<<<<<<<<<<<<< Approach <<<<<<<<<<<<<<<<<<<<
 
 Since I had to optimize for time and not space, I decided not to use a graph data structure at all.
 The problem is very specific and I have devised a specific solution to it and not a generic one.
@@ -44,7 +44,7 @@ But without this, we can't keep track whether a vertex is to be deleted from the
 
 
 
->>>>>>>>>>>>>>>>>>>> Performance <<<<<<<<<<<<<<<<<<<<
+<<<<<<<<<<<<<<<<<<<< Performance <<<<<<<<<<<<<<<<<<<<
 
 I had to optimize for time. So I used a combination of fast data structures.
 The heap inserts and deletes run in O(log n)
@@ -57,7 +57,7 @@ That would be really prohibitive for a fast response system. Hence, I avoided us
 
 
 
->>>>>>>>>>>>>>>>>>>> Concerns <<<<<<<<<<<<<<<<<<<<
+<<<<<<<<<<<<<<<<<<<< Concerns <<<<<<<<<<<<<<<<<<<<
 
 I am an MS student taking coursework and also grading a course.
 I had a lot at hand and couldn't spend as much time as I would have liked.
