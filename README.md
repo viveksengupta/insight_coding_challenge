@@ -17,7 +17,7 @@ Since I had to optimize for time and not space, I decided not to use a graph dat
 The problem is very specific and I have devised a specific solution to it and not a generic one.
 I have used 4 different data structures.
 
-/* ========== 1. dateHeap ========== */
+## ========== 1. dateHeap ========== ##
 
 A min heap maintaining the timestamps of tweets which are in the 60 second scope.
 When we process a new tweet, we keep on extracting the min from this heap till we find a tweet that didn't go out of scope.
