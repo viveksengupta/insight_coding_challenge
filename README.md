@@ -17,25 +17,25 @@ Since I had to optimize for time and not space, I decided not to use a graph dat
 The problem is very specific and I have devised a specific solution to it and not a generic one.
 I have used 4 different data structures.
 
-## ========== 1. dateHeap ========== ##
+### ========== 1. dateHeap ========== ###
 
 A min heap maintaining the timestamps of tweets which are in the 60 second scope.
 When we process a new tweet, we keep on extracting the min from this heap till we find a tweet that didn't go out of scope.
 We add the timestamp of the current tweet to the heap.
 
-/* ========== 2. dateEdgeMap ========== */
+### ========== 2. dateEdgeMap ========== ###
 
 A HashMap where dates(timestamps) are keys and a list of formatted edges is the value.
 For an edge between vertices "abc" and "xyz", the formatted edge string would look like abc-xyz.
 If multiple tweets come in at the same time, we will add the new edges being formed to the list
 
-/* ========== 3. edgeContributionMap ========== */
+### ========== 3. edgeContributionMap ========== ###
 
 A HashMap with edge strings as keys and the repetition factors as values.
 If an edge comes from multiple tweets, then the contribution factor for that would be the same as the number of such tweets.
 This way, we can identify whether an edge would still be there once one of such contributing tweets go out of scope.
 
-/* ========== 4. vertexDegreeMap ========== */
+### ========== 4. vertexDegreeMap ========== ###
 
 A HashMap with vertices as keys and degrees of them as values.
 Once the value of an edge goes to zero in the edgeContributionMap, we know that all the tweets for that edge are out of scope.
