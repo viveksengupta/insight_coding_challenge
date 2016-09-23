@@ -1,5 +1,4 @@
 Project name: insight_coding_challenge
-Vivek's solution to coding challenge for Insight data engineering fellowship
 
 
 
@@ -53,18 +52,8 @@ But without this, we can't keep track whether a vertex is to be deleted from the
 I had to optimize for time. So I used a combination of fast data structures.
 The heap inserts and deletes run in O(log n)
 The HashMap inserts and deletes are O(1 + alpha) where alpha is the load factor. This should be almost constant.
-Moreover, in case of collisions, Java 8 uses a BST instead of a Linked List for chaining.
+Moreover, in case of collisions, Java 8 uses Red Black trees instead of a Linked Lists for chaining.
 However, if the initial capacity is declared as per the usage expectations, we can achieve minimum collisions.
 
 On the contrary, if I had used an adjacency list representation of a graph, search would take O(degree) of a vertex.
 That would be really prohibitive for a fast response system. Hence, I avoided using graphs.
-
-
-
-<<<<<<<<<<<<<<<<<<<< Concerns <<<<<<<<<<<<<<<<<<<<
-
-I am an MS student taking coursework and also grading a course.
-I had a lot at hand and couldn't spend as much time as I would have liked.
-Hence, I could not test my code very rigorously.
-I mostly performed ad hoc testing.
-But I tried to cover all the corner cases.
